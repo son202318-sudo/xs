@@ -45,14 +45,32 @@ document.getElementById("products").innerHTML=products.map((p,i)=>`
 <div class="card"><div class="pic">${p.emoji}</div><div class="info"><b>${p.name}</b><div class="price">${money(p.price)}</div><button class="add" onclick="add(${i})">Thêm vào giỏ</button></div></div>`).join("");
 document.getElementById("count").textContent=cart.reduce((s,x)=>s+x.qty,0);
 }
-function add(i){let x=cart.find(x=>x.i===i);x?x.qty++:cart.push({i,qty:1});render();openCart();}
+function add(i){
+  let x=cart.find(x=>x.id===i);
+  if(x){
+    x.qty++;
+  }else{
+    cart.push({
+      id:i,
+      name:products[i].name,
+      price:products[i].price,
+      qty:1
+    });
+  }
+  render();
+  openCart();
+}
 function openCart(){document.getElementById("modal").style.display="flex";drawCart()}
 function closeCart(){document.getElementById("modal").style.display="none"}
 function drawCart(){
 let el=document.getElementById("cartItems");
 if(!cart.length){el.innerHTML='<div class="empty">Giỏ hàng đang trống.</div>';document.getElementById("total").textContent="0₫";return}
-el.innerHTML=cart.map(x=>`<p>${products[x.i].name} × ${x.qty} — <b>${money(products[x.i].price*x.qty)}</b> <button onclick="removeItem(${x.i})">Xóa</button></p>`).join("");
-document.getElementById("total").textContent=money(cart.reduce((s,x)=>s+products[x.i].price*x.qty,0));
+el.el.innerHTML=cart.map(x =>
+  `<p>${x.name} × ${x.qty} — ${money(x.price*x.qty)}</p>`
+).join("");
+
+document.getElementById("total").textContent=
+  money(cart.reduce((s,x)=>s+x.price*x.qty,0));
 }
 function removeItem(i){cart=cart.filter(x=>x.i!==i);render();drawCart()}
 async function order(){
@@ -66,11 +84,11 @@ async function order(){
     return alert("Vui lòng nhập đủ thông tin giao hàng!");
 
   const productsText=cart.map(x =>
-  `${products[x.i].name} × ${x.qty} — ${money(products[x.i].price*x.qty)}`
+  `${x.name} × ${x.qty} — ${money(x.price*x.qty)}`
 ).join("\n");
 
 const total=cart.reduce(
-  (s,x)=>s+products[x.i].price*x.qty,0
+  (s,x)=>s+x.price*x.qty,0
 );
 
   const response=await fetch("https://formspree.io/f/mvkonebw",{
